@@ -26,7 +26,7 @@ function info()
 
 class Blinker
 {
-	PeriodTime = 1.0;
+	PeriodTime = 0.5;
 	OnlineStateTime = 0.05;
 	OfflineStateTime = null;
 	
@@ -61,7 +61,7 @@ class Blinker
 		local ledLine = ledLines[actualLed];	
 		ledState = !ledState;
 		light(ledLine, ledState);
-		local delay = ledState ? 0.05 : 0.2;
+		local delay = ledState ? OnlineStateTime : OfflineStateTime;
 		if (!ledState)
 		{
 			actualLed = (actualLed + direction) % ledLines.len();
