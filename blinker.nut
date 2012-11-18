@@ -6,7 +6,7 @@
  * http://devwiki.electricimp.com/doku.php?id=garbagecollectorproblems
  *
  * Squirrel 3.0 Reference Manual
- * http://squirrel-lang.org/doc/squirrel3.html#d0e841
+ * http://squirrel-lang.org/doc/squirrel3.html
  *
  */
 
@@ -26,14 +26,15 @@ function info()
 
 class Blinker
 {
-	ledState = false;
 	ledLines = null;
+	direction = 1;
+	ledState = false;	
 	actualLed = 0;
-	counter = 0;
 	
-	constructor(ledLines)
+	constructor(ledLines, reverseDirection = false)
 	{
 		this.ledLines = ledLines;
+		direction = reverseDirection ? -1 : 1;
 		init();
 	}
 	
@@ -58,7 +59,11 @@ class Blinker
 		local delay = ledState ? 0.05 : 0.2;
 		if (!ledState)
 		{
-			actualLed = (actualLed + 1) % ledLines.len();
+			actualLed = (actualLed + direction) % ledLines.len();
+			if (actualLed < 0)
+			{
+				actualLed += ledLines.len();
+			}
 		}
 		imp.wakeup(delay, blink.bindenv(this));
 	}	
@@ -74,6 +79,6 @@ local ledLines = [
  
 imp.configure("Blinker", [], []);
 info();
-blinker <- Blinker(ledLines);
+blinker <- Blinker(ledLines, true);
 blinker.start();
 
