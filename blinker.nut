@@ -26,15 +26,20 @@ function info()
 
 class Blinker
 {
+	PeriodTime = 1.0;
+	OnlineStateTime = 0.05;
+	OfflineStateTime = null;
+	
 	ledLines = null;
-	direction = 1;
+	direction = null;
 	ledState = false;	
-	actualLed = 0;
+	actualLed = 0;	
 	
 	constructor(ledLines, reverseDirection = false)
 	{
 		this.ledLines = ledLines;
 		direction = reverseDirection ? -1 : 1;
+		OfflineStateTime = PeriodTime / ledLines.len() - OnlineStateTime;
 		init();
 	}
 	
