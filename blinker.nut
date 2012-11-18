@@ -26,19 +26,21 @@ function info()
 
 class Blinker
 {
-	PeriodTime = 0.5;
+	PeriodTime = 1.0;
 	OnlineStateTime = 0.05;
 	OfflineStateTime = null;
 	
 	ledLines = null;
 	direction = null;
 	ledState = false;	
-	actualLed = 0;	
+	actualLed = 0;
+	detectDirectionPin = null;
 	
-	constructor(ledLines, reverseDirection = false)
+	constructor(ledLines, detectDirectionPin)
 	{
 		this.ledLines = ledLines;
-		direction = reverseDirection ? -1 : 1;
+		this.detectDirectionPin = detectDirectionPin;
+		setDirection(true);
 		OfflineStateTime = PeriodTime / ledLines.len() - OnlineStateTime;
 		init();
 	}
@@ -48,12 +50,29 @@ class Blinker
 		blink();
 	}
 	
+	function changeDirection()
+	{
+		direction = -direction;
+	}
+	
+	function setDirection(normal)
+	{
+		direction = normal ? 1 : -1;
+	}
+	
 	function init()
 	{
+		detectDirectionPin.configure(DIGITAL_IN_PULLUP, detectDirection.bindenv(this));
 		foreach(index, ledLine in ledLines)
 		{
 			ledLine.configure(DIGITAL_OUT_OD_PULLUP);
 		}
+	}
+	
+	function detectDirection()
+	{
+		local state = hardware.pin9.read();
+		setDirection(state);
 	}
 	
 	function blink()
@@ -74,6 +93,9 @@ class Blinker
 	}	
 }
 
+function changeDirection()
+{
+}
 
 local ledLines = [
 	hardware.pin1,
@@ -84,6 +106,5 @@ local ledLines = [
  
 imp.configure("Blinker", [], []);
 info();
-blinker <- Blinker(ledLines, true);
+blinker <- Blinker(ledLines, hardware.pin9);
 blinker.start();
-
