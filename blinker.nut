@@ -10,12 +10,6 @@
  *
  */
 
-function light(led, state)
-{
-	local value = state ? 1 : 0;
-	led.write(value);
-}
-
 function info()
 {
 	server.log("Voltage: " + hardware.voltage());
@@ -24,25 +18,81 @@ function info()
 	server.log("MAC: " + imp.getmacaddress());
 }
 
+function bool(value)
+{
+	return value ? true : false;
+}
+
+function xor(lhs, rhs)
+{
+	return (lhs && !rhs) || (!lhs && rhs);
+}
+
+
+class Led
+{
+	pin = null;
+	activeOnLevel = null;
+	state = null;
+	
+	constructor (pin, activeOnLevel = 0)
+	{
+		this.pin = pin;
+		this.activeOnLevel = bool(activeOnLevel);
+	}
+	
+	function init()
+	{
+		pin.configure(DIGITAL_OUT_OD_PULLUP);
+	}
+	
+	function set(state)
+	{
+		this.state = bool(state);
+		local ledValue = xor(this.state, activeOnLevel) ? 0 : 1;
+		pin.write(ledValue);
+	}
+	
+	function get()
+	{
+		return state;
+	}
+	
+	function on()
+	{
+		set(true);
+	}
+	
+	function off()
+	{
+		set(false);
+	}
+	
+	function reverse()
+	{
+		set(!state);
+	}
+}
+
+
 class Blinker
 {
 	PeriodTime = 1.0;
 	OnlineStateTime = 0.05;
 	OfflineStateTime = null;
 	
-	ledLines = null;
+	leds = null;
 	direction = null;
 	ledState = false;	
 	actualLed = 0;
 	detectDirectionPin = null;
 	
-	constructor(ledLines, detectDirectionPin)
+	constructor(ledPins, detectDirectionPin)
 	{
-		this.ledLines = ledLines;
 		this.detectDirectionPin = detectDirectionPin;
 		setDirection(true);
-		OfflineStateTime = PeriodTime / ledLines.len() - OnlineStateTime;
-		init();
+		OfflineStateTime = PeriodTime / ledPins.len() - OnlineStateTime;
+		init(ledPins);
 	}
 	
 	function start()	
@@ -60,33 +110,35 @@ class Blinker
 		direction = normal ? 1 : -1;
 	}
 	
-	function init()
+	function init(ledPins)
 	{
 		detectDirectionPin.configure(DIGITAL_IN_PULLUP, detectDirection.bindenv(this));
-		foreach(index, ledLine in ledLines)
+		leds = []
+		foreach(index, ledLine in ledPins)
 		{
-			ledLine.configure(DIGITAL_OUT_OD_PULLUP);
+			local led = Led(ledLine, true);
+			led.init();
+			leds.append(led);
 		}
 	}
 	
 	function detectDirection()
 	{
-		local state = hardware.pin9.read();
+		local state = detectDirectionPin.read();
 		setDirection(state);
 	}
 	
 	function blink()
 	{
-		local ledLine = ledLines[actualLed];	
 		ledState = !ledState;
-		light(ledLine, ledState);
+		leds[actualLed].set(ledState);
 		local delay = ledState ? OnlineStateTime : OfflineStateTime;
 		if (!ledState)
 		{
-			actualLed = (actualLed + direction) % ledLines.len();
+			actualLed = (actualLed + direction) % leds.len();
 			if (actualLed < 0)
 			{
-				actualLed += ledLines.len();
+				actualLed += leds.len();
 			}
 		}
 		imp.wakeup(delay, blink.bindenv(this));
@@ -97,7 +149,7 @@ function changeDirection()
 {
 }
 
-local ledLines = [
+local ledPins = [
 	hardware.pin1,
 	hardware.pin2,
 	hardware.pin5,
@@ -106,5 +158,5 @@ local ledLines = [
  
 imp.configure("Blinker", [], []);
 info();
-blinker <- Blinker(ledLines, hardware.pin9);
+blinker <- Blinker(ledPins, hardware.pin9);
 blinker.start();
