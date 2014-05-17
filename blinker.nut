@@ -28,7 +28,6 @@ function xor(lhs, rhs)
 	return (lhs && !rhs) || (!lhs && rhs);
 }
 
-
 class Led
 {
 	pin = null;
@@ -107,7 +106,13 @@ class Blinker
 	
 	function setDirection(normal)
 	{
-		direction = normal ? 1 : -1;
+		local newDirection = normal ? 1 : -1;
+		if (newDirection != direction)
+		{
+			direction = newDirection;
+			server.log("Change direction: " + direction);
+			server.show(direction ? "forward" : "backward");
+		}
 	}
 	
 	function init(ledPins)
@@ -143,10 +148,6 @@ class Blinker
 		}
 		imp.wakeup(delay, blink.bindenv(this));
 	}	
-}
-
-function changeDirection()
-{
 }
 
 local ledPins = [

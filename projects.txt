@@ -1,0 +1,5 @@
+Measure temperature with DS18B20 sensor
+
+http://electricimp.com/docs/resources/onewire/
+http://forums.electricimp.com/discussion/239/onewire-support/p1
+https://www.adafruit.com/products/1130
