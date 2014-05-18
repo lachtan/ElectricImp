@@ -1,0 +1,5 @@
+Implementing a simple 1-Wire bus on the imp
+http://electricimp.com/docs/resources/onewire/
+
+From Electric Imp To Open.Sen.Se and back
+http://christian.liljedahl.dk/guides/from-electric-imp-to-open-sen-se

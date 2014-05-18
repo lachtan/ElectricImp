@@ -1,0 +1,5 @@
+Dallas 1 wire bus over UART
+
+http://www.maximintegrated.com/app-notes/index.mvp/id/214
+https://github.com/dword1511/onewire-over-uart
+http://forums.electricimp.com/discussion/239/onewire-support/p1

@@ -1,6 +1,4 @@
-// https://gist.github.com/smittytone/11370844#file-one_wire_single-device-nut
-// https://gist.github.com/smittytone/11370885#file-one_wire_multi-device-nut
-
+// http://electricimp.com/docs/resources/onewire/
 
 class OneWire
 {
@@ -67,7 +65,6 @@ class OneWire
 	    	return lastForkPoint;
 	    }
 
-		// There are 1-Wire device(s) on the bus, so issue the 1-Wire SEARCH command (0xF0)
 		write(0xF0);
 
 		for (local i = 64; i > 0; i--) 
@@ -202,8 +199,31 @@ function logTemp()
 		id = formatDeviceId(id);
 		server.log(format("%s Temperature: %3.2f degrees C", id, celsius));
 		
-		local data = {"id": id, "celsius": celsius};
+		local data = {
+		    "imp": hardware.getdeviceid(),
+		    "mac": imp.getmacaddress(),
+		    "id": id,
+		    "celsius": celsius
+		};
+
 		agent.send("temp", data);
+	}
+}
+
+function delay(delay)
+{
+	local start = hardware.millis();
+	while (hardware.millis() - start < delay);
+}
+
+function ledBlink()
+{
+	for (local i = 0; i < 3; i++)
+	{
+		led.write(1);
+		delay(20);
+		led.write(0);
+		delay(50);
 	}
 }
 
@@ -212,6 +232,7 @@ function measure()
 	server.log("--------------------------------------------------");
 	//imp.wakeup(10.0, awakeAndGetTemp);
 	logTemp();	
+	ledBlink();
 	server.log("Go to sleep for 60 seconds");
 	server.sleepfor(60);
 }
@@ -222,5 +243,8 @@ function measure()
 
 oneWire <- OneWire(hardware.uart12);
 temperature <- Temperature(oneWire);
-//awakeAndGetTemp();
+
+led <- hardware.pin9;
+led.configure(DIGITAL_OUT);
+
 imp.onidle(measure);
